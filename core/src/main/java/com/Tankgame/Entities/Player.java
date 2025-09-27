@@ -43,6 +43,7 @@ public class Player {
     private float turretRot = 0;
     private int health = 20;
     private int cooldown = 0;
+    private boolean buttonGun;
     private Array<Rectangle> wallSprites;
     private AssetManager man;
 
@@ -80,8 +81,15 @@ public class Player {
             @Override
             public boolean touchDown(int x, int y, int pointer, int button) {
                 if (button == Input.Buttons.LEFT) {
-                    System.out.println("Attempt Pew");
-                    WeaponFire();
+                    buttonGun = true;
+                }
+                return true;
+            }
+
+            @Override
+            public boolean touchUp(int x, int y, int pointer, int button) {
+                if (button == Input.Buttons.LEFT) {
+                    buttonGun = false;
                 }
                 return true;
             }
@@ -90,7 +98,6 @@ public class Player {
 
     private void WeaponFire() {
         if (cooldown <= 0 && activeBullets.size < 10) {
-            System.out.println("Pew");
             ProjectileBase bullet = bulletPool.obtain();
             bullet.init(turretSprite.getX()+turretSprite.getWidth()/2, turretSprite.getY()+turretSprite.getHeight()/2, man, 360);
             activeBullets.add(bullet);
@@ -103,11 +110,9 @@ public class Player {
         cooldown -= 1;
         int len = activeBullets.size;
         for (int i = len; --i >= 0;) {
-            System.out.println("Update Pew");
             ProjectileBase obj = activeBullets.get(i);
             obj.update(1, wallSprites);
             if (!obj.alive) {
-                System.out.println("Kill Pew");
                 activeBullets.removeIndex(i);
                 bulletPool.free(obj);
             }
@@ -147,6 +152,10 @@ public class Player {
         } else {
             targetXMove = 0;
             targetYMove = 0;
+        }
+
+        if (buttonGun) {
+            WeaponFire();
         }
     }
 
@@ -243,7 +252,6 @@ public class Player {
         turretSprite.draw(batch);
 
         for (ProjectileBase obj : activeBullets) {
-            System.out.println("Draw Pew");
             obj.bulletSprite.draw(batch);
         }
     }

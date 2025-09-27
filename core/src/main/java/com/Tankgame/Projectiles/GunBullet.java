@@ -24,11 +24,9 @@ public class GunBullet extends ProjectileBase {
     public void update(float delta, Array<Rectangle> walls) {
         life -= 1;
         if (life <= 0 || isOutOfScreen(28, 16)) {
-            System.out.println("Murder Pew");
             alive = false;
             reset();
         } else {
-            System.out.println("Update Pew 2");
             position.add(1*delta*speed, 1*delta*speed);
             bulletSprite.setPosition(position.x, position.y);
         }
