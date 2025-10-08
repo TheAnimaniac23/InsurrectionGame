@@ -1,7 +1,6 @@
 package com.Tankgame.Entities;
 
 import com.Tankgame.Main;
-import com.Tankgame.Menus.LevelSelect;
 import com.Tankgame.Projectiles.GunBullet;
 import com.Tankgame.Projectiles.ProjectileBase;
 import com.badlogic.gdx.Gdx;
@@ -21,15 +20,16 @@ public class Player {
 
     private Texture chassis;
     private Texture turret;
+    private Texture healthT;
+    private Texture healthTBack;
 
     private Sprite chassisSprite;
     private Sprite turretSprite;
-    private Rectangle chassisRect;
+    public Rectangle chassisRect;
 
-    private boolean keysW;
-    private boolean keysA;
-    private boolean keysS;
-    private boolean keysD;
+    private Sprite healthSpriteBack;
+    private Sprite healthSprite;
+
     private float mouseX;
     private float mouseY;
 
@@ -37,14 +37,13 @@ public class Player {
     private float targetXMove;
     private float targetY;
     private float targetYMove;
-    private float rotSpeed = 360;
-    private float moveSpeed = 0.05f;
+    private final float moveSpeed = 0.05f;
     private float chassisRot = 0;
     private float turretRot = 0;
-    private int health = 20;
+    public int health = 20;
     private int cooldown = 0;
     private boolean buttonGun;
-    private Array<Rectangle> wallSprites;
+    private Array<Rectangle> hitboxes;
     private AssetManager man;
 
     public Array<ProjectileBase> activeBullets = new Array<>();
@@ -55,13 +54,18 @@ public class Player {
         }
     };
 
-    public void Player(int spawnx, int spawny, AssetManager manager, Array<Rectangle> walls) {
+    public void Player(int spawnx, int spawny, AssetManager manager) {
 
         chassis = manager.get("Entities/Player/PlayerChassisStatic.png", Texture.class);
         turret = manager.get("Entities/Player/PlayerTurretMG.png", Texture.class);
+        healthT = manager.get("GUI/HealthBars/PlayerHealthBar1.png", Texture.class);
+        healthTBack = manager.get("GUI/HealthBars/PlayerHealthBar0.png", Texture.class);
 
         chassisSprite = new Sprite(chassis);
         turretSprite = new Sprite(turret);
+        healthSprite = new Sprite(healthT);
+        healthSpriteBack = new Sprite(healthTBack);
+
         chassisRect = new Rectangle();
 
         man = manager;
@@ -75,7 +79,10 @@ public class Player {
         turretSprite.setCenter(chassisSprite.getX() + 0.5f, chassisSprite.getY() + 0.5f);
         turretSprite.setOrigin(turretSprite.getWidth()/2, turretSprite.getHeight()/2);
 
-        wallSprites = walls;
+        healthSpriteBack.setSize(6, 1);
+        healthSpriteBack.setPosition(0, 15);
+        healthSprite.setSize(4.25f, 0.375f);
+        healthSprite.setPosition(0.25f, 15.3125f);
 
         Gdx.input.setInputProcessor( new InputAdapter() {
             @Override
@@ -99,19 +106,21 @@ public class Player {
     private void WeaponFire() {
         if (cooldown <= 0 && activeBullets.size < 10) {
             ProjectileBase bullet = bulletPool.obtain();
-            bullet.init(turretSprite.getX()+turretSprite.getWidth()/2, turretSprite.getY()+turretSprite.getHeight()/2, man, 360);
+            float bulletX = chassisSprite.getX()+(chassisSprite.getWidth()/2);
+            float bulletY = chassisSprite.getY()+(chassisSprite.getHeight()/2);
+            bullet.init(bulletX, bulletY, man, 150, turretRot);
             activeBullets.add(bullet);
             // sets so new bullet spawns every 60 ticks or ~1 bullet a second.
-            cooldown = 60;
+            cooldown = 10;
         }
     }
 
-    private void WeaponUpdate() {
+    private void WeaponUpdate(float delta) {
         cooldown -= 1;
         int len = activeBullets.size;
         for (int i = len; --i >= 0;) {
             ProjectileBase obj = activeBullets.get(i);
-            obj.update(1, wallSprites);
+            obj.update(delta, hitboxes);
             if (!obj.alive) {
                 activeBullets.removeIndex(i);
                 bulletPool.free(obj);
@@ -125,10 +134,10 @@ public class Player {
         mouseX = mouseGamePos.x;
         mouseY = mouseGamePos.y;
 
-        keysW = Gdx.input.isKeyPressed(Input.Keys.W);
-        keysA = Gdx.input.isKeyPressed(Input.Keys.A);
-        keysS = Gdx.input.isKeyPressed(Input.Keys.S);
-        keysD = Gdx.input.isKeyPressed(Input.Keys.D);
+        boolean keysW = Gdx.input.isKeyPressed(Input.Keys.W);
+        boolean keysA = Gdx.input.isKeyPressed(Input.Keys.A);
+        boolean keysS = Gdx.input.isKeyPressed(Input.Keys.S);
+        boolean keysD = Gdx.input.isKeyPressed(Input.Keys.D);
 
         chassisRot = chassisSprite.getRotation();
 
@@ -159,10 +168,12 @@ public class Player {
         }
     }
 
-    public void logic() {
+    public void logic(Array<Rectangle> hitboxes, Array<ProjectileBase> bullets) {
+        this.hitboxes = hitboxes;
+
         // Turret Rotation Logic, makes much sense to me.
-        turretRot = (float) Math.toDegrees(Math.atan2(mouseY-(chassisSprite.getY()+0.5f), mouseX-(chassisSprite.getX()+0.5f)));
-        turretSprite.setRotation(turretRot-90);
+        turretRot = (float) Math.toDegrees(Math.atan2(mouseY-(chassisSprite.getY()+0.5f), mouseX-(chassisSprite.getX()+0.5f)))-90;
+        turretSprite.setRotation(turretRot);
 
         // Chassis Rotation Logic... very confusing, I only 75% understand it.
         float targetRot = MathUtils.atan2(targetX, targetY) * MathUtils.radiansToDegrees;
@@ -175,7 +186,8 @@ public class Player {
         }
 
         float delta = Gdx.graphics.getDeltaTime();
-        float rotAmount = rotSpeed*delta;
+        float rotSpeed = 360;
+        float rotAmount = rotSpeed *delta;
 
         float angDif = targetRot - chassisRot;
         if (Math.abs(angDif) < rotAmount) {
@@ -184,22 +196,24 @@ public class Player {
         rotAmount = Math.copySign(rotAmount, angDif);
 
         chassisRot = chassisRot + rotAmount;
-        chassisSprite.setRotation(chassisRot+rotAmount);
+        chassisSprite.setRotation(chassisRot);
 
         // Movement of the chassis
         chassisSprite.setPosition(chassisSprite.getX()+targetXMove, chassisSprite.getY()+targetYMove);
+        chassisRect.setPosition(chassisSprite.getX(), chassisSprite.getY());
 
         // collision control
-        for (int i = 0; i < wallSprites.size; i++) {
-            Rectangle temp = wallSprites.get(i);
+
+        for (int i = 0; i < this.hitboxes.size; i++) {
+            Rectangle temp = this.hitboxes.get(i);
 
             int side = 4; // 0=top, 1=left, 2=bottom, 3=right
 
             if (temp.overlaps(chassisRect)) {
-                float centerXP = chassisRect.x + chassisRect.width / 2;
-                float centerYP = chassisRect.y + chassisRect.height / 2;
-                float centerXW = temp.x + temp.width / 2;
-                float centerYW = temp.y + temp.height / 2;
+                float centerXP = chassisRect.x + (chassisRect.width / 2);
+                float centerYP = chassisRect.y + (chassisRect.height / 2);
+                float centerXW = temp.x + (temp.width / 2);
+                float centerYW = temp.y + (temp.height / 2);
 
                 float overX;
                 float overY;
@@ -231,29 +245,51 @@ public class Player {
                 }
             }
 
+            float ancX = chassisSprite.getX();
+            float ancY = chassisSprite.getY();
+
             if (side == 0) {
-                chassisSprite.setPosition(chassisSprite.getX(), chassisSprite.getY()-moveSpeed);
+                ancY = temp.getY() - chassisSprite.getHeight();
             } else if (side == 1) {
-                chassisSprite.setPosition(chassisSprite.getX()+moveSpeed, chassisSprite.getY());
+                ancX = temp.getX() + temp.getWidth();
             } else if (side == 2) {
-                chassisSprite.setPosition(chassisSprite.getX(), chassisSprite.getY()+moveSpeed);
+                ancY = temp.getY() + temp.getHeight();
             } else if (side == 3) {
-                chassisSprite.setPosition(chassisSprite.getX()-moveSpeed, chassisSprite.getY());
+                ancX = temp.getX() - chassisSprite.getWidth();
+            }
+            chassisSprite.setPosition(ancX, ancY);
+        }
+
+        // bullet damage control
+        for (ProjectileBase obj : bullets) {
+            if (chassisRect.overlaps(obj.bulletRect)) {
+                health -= obj.damage;
             }
         }
+
+        // health bar logic
+        float temp = 4.25f * health/20;
+        healthSprite.setSize(temp, 0.375f);
+
         chassisRect.setPosition(chassisSprite.getX(), chassisSprite.getY());
         turretSprite.setCenter(chassisSprite.getX()+0.5f, chassisSprite.getY()+0.5f);
 
-        WeaponUpdate();
+        WeaponUpdate(delta);
     }
 
     public void draw(SpriteBatch batch) {
-        chassisSprite.draw(batch);
-        turretSprite.draw(batch);
-
         for (ProjectileBase obj : activeBullets) {
             obj.bulletSprite.draw(batch);
         }
+
+        chassisSprite.draw(batch);
+        turretSprite.draw(batch);
+    }
+
+    //draws the player health bar. Always draws last on screen, so its on top.
+    public void draw2(SpriteBatch batch) {
+        healthSpriteBack.draw(batch);
+        healthSprite.draw(batch);
     }
 
 }

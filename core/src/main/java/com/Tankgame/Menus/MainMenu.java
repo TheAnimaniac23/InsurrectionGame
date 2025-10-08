@@ -72,16 +72,14 @@ public class MainMenu implements Screen {
         float mouseY = mouseGamePos.y;
 
         mouseRect.set(mouseX, mouseY, 0.1f, 0.1f);
+    }
 
+    private void logic() {
         if (startRect.overlaps(mouseRect)) {
             startSprite.setRegion(startButtonPress);
         } else {
             startSprite.setRegion(startButton);
         }
-    }
-
-    private void logic() {
-
     }
 
     private void draw() {

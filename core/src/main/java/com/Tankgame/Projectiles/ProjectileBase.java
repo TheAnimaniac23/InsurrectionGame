@@ -16,6 +16,7 @@ public class ProjectileBase implements Pool.Poolable {
     public Texture bullet;
     public Sprite bulletSprite;
     public Rectangle bulletRect;
+    public int damage;
 
     @Override
     public void reset() {
@@ -35,6 +36,6 @@ public class ProjectileBase implements Pool.Poolable {
         return false;
     }
 
-    public void init(float x, float y, AssetManager man, int i) {
+    public void init(float x, float y, AssetManager man, int i, float r) {
     }
 }

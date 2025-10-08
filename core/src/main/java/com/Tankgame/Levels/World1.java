@@ -1,15 +1,22 @@
 package com.Tankgame.Levels;
 
+import com.Tankgame.Entities.EnemyBase;
+import com.Tankgame.Entities.GunnerEnemy;
 import com.Tankgame.Entities.Player;
 import com.Tankgame.Interactables.InterBase;
 import com.Tankgame.Main;
 import com.Tankgame.Managers.FloorManager;
 import com.Tankgame.Managers.InterManager;
 import com.Tankgame.Managers.WallManager;
+import com.Tankgame.Menus.LevelFail;
+import com.Tankgame.PathMaths.Pathfinding;
+import com.Tankgame.Projectiles.ProjectileBase;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class World1 {
@@ -61,20 +68,23 @@ public class World1 {
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,9,0,0,0,0,8,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
         };
+
+        int level = 1;
+        int world = 1;
 
         FloorManager flooring;
         WallManager walls;
@@ -83,6 +93,17 @@ public class World1 {
         Player player;
 
         Array<Rectangle> hitboxes;
+        Array<Rectangle> hitboxes2;
+        Array<ProjectileBase> bullets;
+        Array<ProjectileBase> pBullets;
+        Array<EnemyBase> enemies;
+        Pool<EnemyBase> enemyPool = new Pool<EnemyBase>() {
+            @Override
+            protected EnemyBase newObject() {
+                // use RNG to pick a random enemy, but theres only one enemy right now so that code will be implemented later.
+                return new GunnerEnemy();
+            }
+        };
 
         private Main game;
 
@@ -99,16 +120,16 @@ public class World1 {
 
             interactibles = new InterManager();
             interactibles.init(interMap, game.manager);
-            interactibles.create();
+            interactibles.create(enemyPool);
             hitboxes = new Array<>();
+            hitboxes2 = new Array<>();
+            bullets = new Array<>();
+            pBullets = new Array<>();
 
-            hitboxes.addAll(walls.wallRects);
-            for (InterBase obj : interactibles.inters) {
-                hitboxes.add(obj.wallRect);
-            }
+            enemies = new Array<>();
 
             player = new Player();
-            player.Player(3, 3, game.manager, hitboxes);
+            player.Player(3, 3, game.manager);
 
         }
 
@@ -124,7 +145,57 @@ public class World1 {
         }
 
         private void logic() {
-            player.logic();
+            if (player.health <= 0) {
+                game.setScreen(new LevelFail(game, level, world));
+            }
+
+            hitboxes.clear();
+            hitboxes2.clear();
+            bullets.clear();
+            pBullets.clear();
+
+            interactibles.update();
+            hitboxes.addAll(walls.wallRects);
+            for (InterBase obj : interactibles.inters) {
+                hitboxes.add(obj.wallRect);
+            }
+            for (EnemyBase enemy : enemies) {
+                hitboxes.add(enemy.chassisRect);
+            }
+
+            bullets.addAll(player.activeBullets);
+            for (InterBase obj : interactibles.inters) {
+                try {
+                    bullets.addAll(obj.bullets);
+                    pBullets.addAll(obj.bullets);
+                } catch (NullPointerException e) {
+                    continue;
+                }
+            }
+
+            hitboxes2.addAll(hitboxes);
+            hitboxes2.add(player.chassisRect);
+
+            for (InterBase obj : interactibles.inters) {
+                obj.update(bullets, hitboxes2, enemies);
+            }
+
+            Pathfinding pather = new Pathfinding();
+            int[][] map = pather.simplifyMap(wallMap, interMap);
+
+            for (EnemyBase enemy : enemies) {
+                enemy.update(hitboxes2, bullets, map, new float[] {player.chassisRect.getX(), player.chassisRect.getY()});
+                if (!enemy.alive) {
+                    enemies.removeValue(enemy, true);
+                    enemyPool.free(enemy);
+                }
+            }
+
+            player.logic(hitboxes, pBullets);
+
+            for (InterBase obj : interactibles.inters) {
+                obj.update2();
+            }
         }
 
         private void draw() {
@@ -138,7 +209,13 @@ public class World1 {
             flooring.draw(game.spriteBatch);
             walls.draw(game.spriteBatch);
             interactibles.draw(game.spriteBatch);
+
+            for (EnemyBase enemy : enemies) {
+                enemy.draw(game.spriteBatch);
+            }
+
             player.draw(game.spriteBatch);
+            player.draw2(game.spriteBatch);
 
             game.spriteBatch.end();
         }

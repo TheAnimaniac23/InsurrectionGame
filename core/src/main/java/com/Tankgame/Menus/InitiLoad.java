@@ -24,7 +24,7 @@ public class InitiLoad implements Screen {
         // the group of assets to be loaded
         game.manager.load("Menus/InsurrectionLogo.png", Texture.class);
         game.manager.load("Menus/LoadBar/LoadBar0.png", Texture.class);
-        game.manager.load("Menus/LoadBar/LoadBar20.png", Texture.class);
+        game.manager.load("Menus/LoadBar/LoadBar1.png", Texture.class);
         game.manager.load("Menus/Levels/Level1.png", Texture.class);
         game.manager.load("Menus/Levels/Level2.png", Texture.class);
         game.manager.load("Menus/Levels/Level3.png", Texture.class);
@@ -51,6 +51,13 @@ public class InitiLoad implements Screen {
         game.manager.load("Menus/MainMenu.png", Texture.class);
         game.manager.load("Menus/StartButton.png", Texture.class);
         game.manager.load("Menus/StartButtonDark.png", Texture.class);
+        game.manager.load("Menus/LevelFailMenu.png", Texture.class);
+        game.manager.load("Menus/LevelMenuButton.png", Texture.class);
+        game.manager.load("Menus/LevelMenuButtonDark.png", Texture.class);
+        game.manager.load("Menus/MainMenuButton.png", Texture.class);
+        game.manager.load("Menus/MainMenuButtonDark.png", Texture.class);
+        game.manager.load("Menus/RestartButton.png", Texture.class);
+        game.manager.load("Menus/RestartButtonDark.png", Texture.class);
         game.manager.load("Floor/ConcreteFloor1.png", Texture.class);
         game.manager.load("Floor/ConcreteFloor2.png", Texture.class);
         game.manager.load("Floor/SteelFloor.png", Texture.class);
@@ -104,6 +111,36 @@ public class InitiLoad implements Screen {
         game.manager.load("Entities/Player/PlayerChassisStatic.png", Texture.class);
         game.manager.load("Entities/Player/PlayerTurretMG.png", Texture.class);
         game.manager.load("Entities/Projectiles/Bullet.png", Texture.class);
+        game.manager.load("Entities/Projectiles/FireBall.png", Texture.class);
+        game.manager.load("Entities/Enemies/ArmoredChassisStaticCS.png", Texture.class);
+        game.manager.load("Entities/Enemies/ArmoredChassisStaticFT.png", Texture.class);
+        game.manager.load("Entities/Enemies/ArmoredChassisStaticMG.png", Texture.class);
+        game.manager.load("Entities/Enemies/ArmoredChassisStaticRG.png", Texture.class);
+        game.manager.load("Entities/Enemies/ArmoredChassisStaticSG.png", Texture.class);
+        game.manager.load("Entities/Enemies/BossChassis.png", Texture.class);
+        game.manager.load("Entities/Enemies/BossTurretMG.png", Texture.class);
+        game.manager.load("Entities/Enemies/BossTurretRG.png", Texture.class);
+        game.manager.load("Entities/Enemies/ChassisStaticCS.png", Texture.class);
+        game.manager.load("Entities/Enemies/ChassisStaticFT.png", Texture.class);
+        game.manager.load("Entities/Enemies/ChassisStaticMG.png", Texture.class);
+        game.manager.load("Entities/Enemies/ChassisStaticML.png", Texture.class);
+        game.manager.load("Entities/Enemies/ChassisStaticRG.png", Texture.class);
+        game.manager.load("Entities/Enemies/ChassisStaticSG.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretChassisCS.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretChassisFT.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretChassisMG.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretChassisRG.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretChassisSG.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretCS.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretFT.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretMG.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretML.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretRG.png", Texture.class);
+        game.manager.load("Entities/Enemies/TurretSG.png", Texture.class);
+        game.manager.load("GUI/HealthBars/EnemyHealthBar0.png", Texture.class);
+        game.manager.load("GUI/HealthBars/EnemyHealthBar1.png", Texture.class);
+        game.manager.load("GUI/HealthBars/PlayerHealthBar0.png", Texture.class);
+        game.manager.load("GUI/HealthBars/PlayerHealthBar1.png", Texture.class);
     }
 
     @Override
@@ -126,8 +163,8 @@ public class InitiLoad implements Screen {
         if (game.manager.isLoaded("Menus/LoadBar/LoadBar0.png")) {
             loadBarBText = game.manager.get("Menus/LoadBar/LoadBar0.png");
         }
-        if (game.manager.isLoaded("Menus/LoadBar/LoadBar20.png")) {
-            loadBarText = game.manager.get("Menus/LoadBar/LoadBar20.png");
+        if (game.manager.isLoaded("Menus/LoadBar/LoadBar1.png")) {
+            loadBarText = game.manager.get("Menus/LoadBar/LoadBar1.png");
         }
 
         float width = 6.5f*progress;
